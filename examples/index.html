@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>introducing orbit.js</title>
+  <meta name="viewport" 
+  content="width=device-width; initial-scale=1.0; maximum-scale=1.0;">
+  <script type="text/javascript" src="http://protojs.org/js/ProtoJS.min.js"></script>
+  <script type="text/javascript" src="../src/orbit.js"></script>
+</head>
+
+<body>
+  <!--[if lt IE 9 ]>
+  <div style='margin-bottom:15px; border: 1px solid #F7941D; background: #FEEFDA; text-align: center; clear: both; height: 75px; position: relative;'>
+  <div style='position: absolute; right: 3px; top: 3px; font-family: courier new; font-weight: bold;'><a href='#' onclick='javascript:this.parentNode.parentNode.style.display="none"; return false;'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-cornerx.jpg' style='border: none;' alt='Close this notice'/></a></div>
+  <div style='width: 640px; margin: 0 auto; text-align: left; padding: 0; overflow: hidden; color: black;'>
+  <div style='width: 75px; float: left;'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-warning.jpg' alt='Warning!'/></div>
+  <div style='width: 275px; float: left; font-family: Arial, sans-serif;'>
+  <div style='font-size: 14px; font-weight: bold; margin-top: 12px;'>You are using an obsolete browser</div>
+  <div style='font-size: 12px; margin-top: 6px; line-height: 12px;'>I'm not Internet Eploder-friendly. Please upgrade to a modern web browser.</div>
+  </div>
+  <div style='width: 73px; float: left;'><a href='http://www.apple.com/safari/download/' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-safari.jpg' style='border: none;' alt='Get Safari'/></a></div>
+  <div style='width: 75px; float: left;'><a href='http://www.firefox.com' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-firefox.jpg' style='border: none;' alt='Get Firefox'/></a></div>
+  <div style='float: left;'><a href='http://www.google.com/chrome' target='_blank'><img src='http://www.ie6nomore.com/files/theme/ie6nomore-chrome.jpg' style='border: none;' alt='Get Google Chrome'/></a></div>
+  </div>
+  </div>
+  <![endif]-->
+
+  <style>
+
+  .menu {
+    display: inline-block;
+    list-style: none;
+    height: 450px;
+    width: 450px;
+  }
+
+  .menu IMG {
+    height: 125px;
+    width: 125px;
+    float: left;
+    cursor: pointer;
+  }
+
+  #splash {
+    text-align: center;
+    margin-right: 210px;
+    min-width: 410px;
+  }
+
+  .menu .info {
+    position: absolute;
+    width: 200px;
+    height: 100px;
+  }
+
+  </style>
+
+  <script type="text/javascript">
+
+  ProtoJS.Event.observe( window, "load", function() {
+    Orbit.info["menu"] = {
+      "_default_" : {
+        description : "<h1>The Universe</h1>and only a small part of it<br>is ours."
+      },
+      "sun" : { 
+        url:         "http://google.com/search?q=sun",
+        description: "hot like the sun<br>and wet like the rain"
+      },
+      "mercury" : { 
+        url:         "http://google.com/search?q=mercury",
+        description: ""
+      },
+      "venus" : { 
+        url:         "http://google.com/search?q=venus",
+        description: "the brightest"
+      },
+      "earth" : { 
+        url:         "http://google.com?q=earth",
+        description: "out little blue planet"
+      },
+      "moon" : { 
+        url:         "http://google.com/search?q=moon",
+        description: "we've been there"
+      },
+      "mars" : { 
+        url:         "http://google.com/search?q=mars",
+        description: "the red planet"
+      },
+      "jupiter" : { 
+        url:         "http://google.com/search?q=jupiter",
+        description: "the biggest marble"
+      },
+      "saturn" : { 
+        url:         "http://google.com/search?q=saturn",
+        description: "known for its belt"
+      },
+      "uranus" : { 
+        url:         "http://google.com/search?q=uranus",
+        description: "it's not your ..."
+      },
+      "neptune" : { 
+        url:         "http://google.com/search?q=neptune",
+        description: "the blue giant"
+      },
+      "pluto" : { 
+        url:         "http://google.com/search?q=pluto",
+        description: "the smallest and most distant"
+      }
+    };
+    new Orbit("menu");
+  } );
+  </script>
+
+  <div id="splash">
+    <div id="menu" class="menu">
+      <img src="sun.png"     title="sun">
+      <img src="mercury.png" title="mercury">
+      <img src="venus.png"   title="venus">    
+      <img src="earth.png"   title="earth">
+      <img src="moon.png"    title="moon">
+      <img src="mars.png"    title="mars">
+      <img src="jupiter.png" title="jupiter">
+      <img src="saturn.png"  title="saturn">
+      <img src="uranus.png"  title="uranus">
+      <img src="neptune.png" title="neptune">
+      <img src="pluto.png"   title="pluto">
+    </div>
+  </div>
+
+  <div class="footer">
+    This beautiful <a
+    href="http://www.iconarchive.com/show/solar-system-icons-by-dan-wiersma.html">icon
+    set</a> was created by <a
+    href="http://www.iconarchive.com/artist/dan-wiersma.html">Dan Wiersma</a>.
+  </div>
+  
+</body>
+</html>
