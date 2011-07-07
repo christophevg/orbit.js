@@ -3,12 +3,38 @@
  * author: Christophe VG <contact+obit@christophe.vg>
  */
 
-var Orbit = Class.extend( {
-  init : function init( id ) {
-    this.id = id;
+/**
+ * we register one top-level Orbit namespace to hold everything we need.
+ */
+
+var Orbit = {
+  // like the really missing getElements(ByClass)
+  getElements : function getElements( type, root, tag ) {
+    root = root || document;
+    tag  = tag  || "*";
+
+    var elems = [];
+    $A(document.getElementsByTagName( tag )).iterate( function( element ) {
+      var classes = $A(element.className.split( / / ));
+      if( classes.has( "orbit" ) && classes.has( type ) ) {
+        elems.push(element);
+      }
+    } );
+    return elems;
+  }
+};
+
+/**
+ * an Orbit.menu is any element that contains Orbit.items and Orbit.info
+ */
+
+Orbit.menu = Class.extend( {
+  init : function init( menu ) {
+    this.menu   = menu;
     this.offset = 0.0;
 
     this.setupMenu();
+    this.setupInfo();
     this.setupItems();
     this.arrangeElements();
     
@@ -16,23 +42,25 @@ var Orbit = Class.extend( {
   },
   
   setupMenu : function setupMenu() {
-    this.menu   = document.getElementById(this.id);
-    this.width  = parseInt(this.menu.offsetWidth);
-    this.height = parseInt(this.menu.offsetHeight);
+    this.width      = parseInt(this.menu.offsetWidth);
+    this.height     = parseInt(this.menu.offsetHeight);
     this.paddingTop = parseInt(this.menu.offsetTop);
-    this.center = { x: this.width / 2, y: this.height / 2 };
-    this.radius = this.width / 2.5;
-    this.info = document.createElement( "DIV" );
-    this.info.className = "info";
-    this.menu.appendChild(this.info);
-    this.hideInfo();
+    this.center     = { x: this.width / 2, y: this.height / 2 };
+    this.radius     = this.width / 2.5;
+  },
+  
+  setupInfo : function setupInfo() {
+    var info, elems = Orbit.getElements( "info", this.menu );
+    if( elems.length > 0 ) {
+      info = elems.shift();
+    }
+    this.info = new Orbit.Info(info);
   },
   
   setupItems : function setupItems() {
     this.items = [];
-    $A(this.menu.getElementsByTagName("IMG")).iterate( function( image ) {
-      var item  = new Orbit.Item( image, this );
-      this.items.push( item );
+    Orbit.getElements( "item", this.menu ).iterate( function( item ) {
+      this.items.push( new Orbit.Item( item, this ) );
     }.scope(this) );
   },
   
@@ -45,8 +73,6 @@ var Orbit = Class.extend( {
       var y = Math.sin(deg) * this.radius;
       item.moveTo( paddingLeft + this.center.x + x, this.paddingTop + this.center.y - y );
     }.scope(this) );
-    this.info.style.left = ( paddingLeft + this.center.x - ( this.info.offsetWidth / 2)) + "px";
-    this.info.style.top  = ( this.paddingTop + this.center.y - ( this.info.offsetHeight / 2)) + "px";
   },
   
   rotate: function rotate() {
@@ -90,18 +116,36 @@ var Orbit = Class.extend( {
   stop: function stop() {
     this.rotating = false;
     this.stopWaitingToStart();
-  },
-  
-  showInfo: function showInfo( html ) {
-    this.info.innerHTML = html;
-  },
-  
-  hideInfo: function hideInfo() {
-    this.showInfo( Orbit.info[this.id]["_default_"].description );
   }
 } );
 
-Orbit.info = {};
+/**
+ * an Orbit.info is an element whose innerHTML is filled with a title and
+ * description of the Orbit.item that currently has the focus or if none is
+ * selected, its own (default) content.
+ */
+
+Orbit.Info = Class.extend( {
+  init : function init( element ) {
+    if( ! element ) { return; }
+    this.element = element;
+    this.defaultContent = this.element.innerHTML;
+  },
+  
+  show : function show( html ) {
+    if( ! this.element ) { return };
+    this.element.innerHTML = html;
+  },
+  
+  hide : function hide() {
+    if( ! this.element ) { return };
+    this.show( this.defaultContent );
+  }
+} );
+
+/**
+ * an Orbit.item is the element that is moved around and grown/shrunk on focus
+ */
 
 Orbit.Item = Class.extend( {
   init : function init( elem, menu ) {
@@ -116,20 +160,17 @@ Orbit.Item = Class.extend( {
   },
   
   analyzeElement : function analyzeElement() {
-    this.width = this.element.offsetWidth;
+    this.width  = this.element.offsetWidth;
     this.height = this.element.offsetHeight;
     this.center = { x : this.width / 2, y : this.height /2 };
   },
 
   setupElement : function setupElement() {
-    this.element.style.position = "absolute";
-    this.element.style.float    = "none";
+    this.element.style.position = "absolute"; // make sure
     ProtoJS.Event.observe( this.element, "mouseover", 
                            this.handleFocus.scope(this) );
     ProtoJS.Event.observe( this.element, "mouseout", 
                            this.handleLostFocus.scope(this) );
-    ProtoJS.Event.observe( this.element, "click",
-                           this.handleClick.scope(this) );
   },
   
   updateElement : function updateElement() {
@@ -146,6 +187,29 @@ Orbit.Item = Class.extend( {
     this.element.style.top  = ( this.top - dy ) + "px";
   },
     
+  handleFocus : function handleFocus() { 
+    this.menu.stop();
+    this.grow();
+    this.menu.info.show( "<h1>" + this.element.title + "</h1>" + 
+                         this.element.getAttribute("data-description") );
+  },
+  
+  handleLostFocus : function handleLostFocus() { 
+    this.menu.info.hide();
+    this.shrink(); 
+    this.menu.startAfter(750);
+  },
+  
+  grow : function grow() {
+    this.scaleDelta = 0.10;
+    this.processModification()
+  },
+  
+  shrink : function shrink() {
+    this.scaleDelta = -0.10;
+    this.processModification();
+  },
+  
   processModification : function processModification() {
     if( this.scaleDelta == 0 ) { return; }
 
@@ -158,54 +222,25 @@ Orbit.Item = Class.extend( {
     
     this.processModification.scope(this).after(30); 
   },
-  
-  handleFocus : function handleFocus() { 
-    this.menu.stop();
-    this.grow();
-    this.menu.showInfo( "<h1>" + this.element.title + "</h1>" + this.getDescription() );
-  },
-  
-  handleLostFocus : function handleLostFocus() { 
-    this.menu.hideInfo();
-    this.shrink(); 
-    this.menu.startAfter(750);
-  },
-  
-  getURL : function getURL() {
-    return Orbit.info[this.menu.id][this.element.title].url;
-  },
-  
-  getDescription : function getDescription() {
-    return Orbit.info[this.menu.id][this.element.title].description;
-  },
-  
-  handleClick     : function handleClick()     {
-    var url = this.getURL();
-    if( url.substring(0,7) == "http://" ) {
-      window.open( url );
-    } else {
-      window.location = url;
-    }
-  },
-  
-  grow : function grow() {
-    this.scaleDelta = 0.10;
-    this.processModification()
-  },
-  
-  shrink : function shrink() {
-    this.scaleDelta = -0.10;
-    this.processModification();
-  },
 
-  goto : function goto(left, top) {
+  goTo : function goTo(left, top) {
     this.left = left;
     this.top  = top;
     this.updateElement();
   },
   
   moveTo : function moveTo(left, top) {
-    // TODO: animate ;-)
-    this.goto(left, top);
+    this.goTo(left, top);
   }
+} );
+
+/**
+ * register an event handler when the window has been loaded to look for orbit
+ * menu's and activate them by creating a new instance of the Orbit.menu class
+ * for them.
+ */
+ProtoJS.Event.observe( window, "load", function() {
+  Orbit.getElements( "menu" ).iterate( function( menu ) {
+    new Orbit.menu( menu );
+  } );
 } );
