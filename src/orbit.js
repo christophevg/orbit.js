@@ -21,6 +21,23 @@ var Orbit = {
       }
     } );
     return elems;
+  },
+
+  // credits go to http://www.quirksmode.org/dom/getstyles.html
+  getStyle : function getStyle(el,styleProp) {
+    var mapping = { 
+                    "fontSize" : "font-size",
+                    "fontFamily" : "font-family",
+                    "backgroundColor" : "background-color"
+                  };
+    if( mapping[styleProp] ) { styleProp = mapping[styleProp]; }
+	  if( el.currentStyle ) {
+		  var y = el.currentStyle[styleProp];
+	  } else if( window.getComputedStyle ) {
+		  var y = document.defaultView.getComputedStyle( el, null )
+		                  .getPropertyValue(styleProp);
+		}
+	  return y;
   }
 };
 
@@ -46,9 +63,10 @@ Orbit.menu = Class.extend( {
     this.height     = parseInt(this.menu.offsetHeight);
     this.paddingTop = parseInt(this.menu.offsetTop);
     this.center     = { x: this.width / 2, y: this.height / 2 };
+    // TODO: make this exact based on width of an item
     this.radius     = this.width / 2.5;
   },
-  
+
   setupInfo : function setupInfo() {
     var info, elems = Orbit.getElements( "info", this.menu );
     if( elems.length > 0 ) {
@@ -151,17 +169,18 @@ Orbit.Item = Class.extend( {
   init : function init( elem, menu ) {
     this.element = elem;
     this.menu    = menu;
-    this.analyzeElement();
-    
+
     this.scale = 0.60;
+
+    this.analyzeElement();
     this.setupElement();
-    
     this.updateElement();
   },
   
   analyzeElement : function analyzeElement() {
     this.width  = this.element.offsetWidth;
     this.height = this.element.offsetHeight;
+    this.fontSize = parseInt(Orbit.getStyle( this.element, "fontSize" )) / this.scale;
     this.center = { x : this.width / 2, y : this.height /2 };
   },
 
@@ -185,13 +204,24 @@ Orbit.Item = Class.extend( {
     var dy = ( this.height * this.scale ) / 2;
     this.element.style.left = ( this.left - dx ) + "px";
     this.element.style.top  = ( this.top - dy ) + "px";
+    
+    // font size
+    this.element.style.fontSize = ( this.fontSize * this.scale ) + "px";
   },
     
   handleFocus : function handleFocus() { 
     this.menu.stop();
     this.grow();
-    this.menu.info.show( "<h1>" + this.element.title + "</h1>" + 
-                         this.element.getAttribute("data-description") );
+    this.menu.info.show( "<h1>" + this.getTitle() + "</h1>" + 
+                         this.getDescription() );
+  },
+  
+  getTitle: function getTitle() {
+    return this.element.title ? this.element.title : this.element.innerHTML;
+  },
+  
+  getDescription: function getDescription() {
+    return this.element.getAttribute("data-description") || "";
   },
   
   handleLostFocus : function handleLostFocus() { 
