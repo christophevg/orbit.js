@@ -26,11 +26,13 @@ var Orbit = {
   // credits go to http://www.quirksmode.org/dom/getstyles.html
   getStyle : function getStyle(el,styleProp) {
     var mapping = { 
-                    "fontSize" : "font-size",
-                    "fontFamily" : "font-family",
-                    "backgroundColor" : "background-color"
+                    "font-size" : "fontSize",
+                    "font-family" : "fontFamily",
+                    "background-color" : "backgroundColor"
                   };
-    if( mapping[styleProp] ) { styleProp = mapping[styleProp]; }
+    if( ProtoJS.Browser.IE && mapping[styleProp] ) { 
+      styleProp = mapping[styleProp]; 
+    }
 	  if( el.currentStyle ) {
 		  var y = el.currentStyle[styleProp];
 	  } else if( window.getComputedStyle ) {
@@ -180,12 +182,14 @@ Orbit.Item = Class.extend( {
   analyzeElement : function analyzeElement() {
     this.width  = this.element.offsetWidth;
     this.height = this.element.offsetHeight;
-    this.fontSize = parseInt(Orbit.getStyle( this.element, "fontSize" )) / this.scale;
+    this.fontSize = parseInt(Orbit.getStyle( this.element, "font-size" )) / this.scale;
     this.center = { x : this.width / 2, y : this.height /2 };
   },
 
   setupElement : function setupElement() {
     this.element.style.position = "absolute"; // make sure
+    this.left = 0;
+    this.top  = 0;
     ProtoJS.Event.observe( this.element, "mouseover", 
                            this.handleFocus.scope(this) );
     ProtoJS.Event.observe( this.element, "mouseout", 
